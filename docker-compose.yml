@@ -1,0 +1,59 @@
+services:
+  web:
+    build:
+      context: ./web
+    environment:
+      MANAGER_URL: http://manager:8080
+      APP_ROOT_DOMAIN: ${APP_ROOT_DOMAIN:-localhost}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      - manager
+    networks:
+      - internal
+    restart: unless-stopped
+
+  manager:
+    build:
+      context: ./manager
+    environment:
+      PORT: "8080"
+      ROOT_DOMAIN: ${ROOT_DOMAIN:-localhost}
+      MYSQL_HOST: ${MYSQL_HOST:-mysql}
+      MYSQL_ROOT_USER: ${MYSQL_ROOT_USER:-root}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-llagents/user-instance:latest}
+      PUBLIC_NETWORK_ID: ${PUBLIC_NETWORK_ID:-llagents_local_public}
+      INTERNAL_NETWORK_ID: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
+    ports:
+      - "${MANAGER_PORT:-8080}:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - mysql
+    networks:
+      - public
+      - internal
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-llagents_platform}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      internal:
+        aliases:
+          - mysql
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+
+networks:
+  internal:
+    name: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
+  public:
+    name: ${PUBLIC_NETWORK_ID:-llagents_local_public}
