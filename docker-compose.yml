@@ -10,7 +10,7 @@ services:
     depends_on:
       - manager
     networks:
-      - runtime
+      - internal
     restart: unless-stopped
 
   manager:
@@ -23,7 +23,8 @@ services:
       MYSQL_ROOT_USER: ${MYSQL_ROOT_USER:-root}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-llagents/user-instance:latest}
-      PROJECT_NETWORK_ID: ${PROJECT_NETWORK_ID:-llagents_local_runtime}
+      DB_NETWORK_ID: ${DB_NETWORK_ID:-llagents_local_db}
+      INGRESS_NETWORK_ID: ${INGRESS_NETWORK_ID:-llagents_local_ingress}
     ports:
       - "${MANAGER_PORT:-8080}:8080"
     volumes:
@@ -31,7 +32,8 @@ services:
     depends_on:
       - mysql
     networks:
-      - runtime
+      - internal
+      - db
     restart: unless-stopped
 
   mysql:
@@ -42,7 +44,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      runtime:
+      db:
         aliases:
           - mysql
     restart: unless-stopped
@@ -51,5 +53,12 @@ volumes:
   mysql-data:
 
 networks:
-  runtime:
-    name: ${PROJECT_NETWORK_ID:-llagents_local_runtime}
+  internal:
+    name: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
+    external: true
+  db:
+    name: ${DB_NETWORK_ID:-llagents_local_db}
+    external: true
+  ingress:
+    name: ${INGRESS_NETWORK_ID:-llagents_local_ingress}
+    external: true
