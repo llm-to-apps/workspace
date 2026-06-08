@@ -13,3 +13,6 @@
 [submodule "agent-tools"]
 	path = agent-tools
 	url = git@github.com:llm-to-apps/agent-tools.git
+[submodule "agent"]
+	path = agent
+	url = git@github.com:llm-to-apps/agent.git
