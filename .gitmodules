@@ -4,3 +4,6 @@
 [submodule "deploy"]
 	path = deploy
 	url = git@github.com:llm-to-apps/deploy.git
+[submodule "web"]
+	path = web
+	url = git@github.com:llm-to-apps/web.git
