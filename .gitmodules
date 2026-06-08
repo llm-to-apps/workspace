@@ -7,3 +7,6 @@
 [submodule "web"]
 	path = web
 	url = git@github.com:llm-to-apps/web.git
+[submodule "templates/money"]
+	path = templates/money
+	url = git@github.com:llm-to-apps/money-template.git
