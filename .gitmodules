@@ -1,0 +1,6 @@
+[submodule "manager"]
+	path = manager
+	url = git@github.com:llm-to-apps/manager.git
+[submodule "deploy"]
+	path = deploy
+	url = git@github.com:llm-to-apps/deploy.git
