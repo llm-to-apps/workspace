@@ -8,7 +8,10 @@ DOCKER_COMPOSE ?= docker compose
 up: build ensure-networks
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	@set -a; . ./$(ENV_FILE); set +a; \
-	docker stack deploy --prune --resolve-image never -c $(COMPOSE_FILE) "$${STACK_NAME:-$(STACK_NAME)}"
+	stack_name="$${STACK_NAME:-$(STACK_NAME)}"; \
+	docker stack deploy --prune --resolve-image never -c $(COMPOSE_FILE) "$$stack_name"; \
+	docker service inspect "$${stack_name}_manager" >/dev/null 2>&1 && \
+		docker service update --force "$${stack_name}_manager" >/dev/null
 
 build:
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
