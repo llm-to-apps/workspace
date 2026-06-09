@@ -47,6 +47,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE:-llagents_platform}
     volumes:
       - mysql-data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
     networks:
       db:
         aliases:
