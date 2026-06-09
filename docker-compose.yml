@@ -1,22 +1,4 @@
 services:
-  web:
-    build:
-      context: ./web
-    environment:
-      MANAGER_URL: http://manager:8080
-      APP_ROOT_DOMAIN: ${APP_ROOT_DOMAIN:-localhost}
-      AUTH_SECRET: ${AUTH_SECRET}
-      DATABASE_URL: mysql://${MYSQL_ROOT_USER:-root}:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-llagents_platform}
-    ports:
-      - "${WEB_PORT:-3000}:3000"
-    depends_on:
-      - manager
-      - mysql
-    networks:
-      - internal
-      - db
-    restart: unless-stopped
-
   manager:
     build:
       context: ./manager
