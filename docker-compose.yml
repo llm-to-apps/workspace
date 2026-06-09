@@ -1,7 +1,26 @@
 services:
+  traefik:
+    image: ${TRAEFIK_IMAGE:-traefik:v3.7}
+    command:
+      - --log.level=INFO
+      - --api.dashboard=false
+      - --entrypoints.web.address=:80
+      - --providers.swarm=true
+      - --providers.swarm.endpoint=unix:///var/run/docker.sock
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.network=${INGRESS_NETWORK_ID:-llagents_local_ingress}
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ingress
+    deploy:
+      restart_policy:
+        condition: any
+
   manager:
-    build:
-      context: ./manager
+    image: ${MANAGER_IMAGE:-orchestra-manager}:${MANAGER_IMAGE_TAG:-local}
     environment:
       PORT: "8080"
       ROOT_DOMAIN: ${ROOT_DOMAIN:-localhost}
@@ -15,46 +34,85 @@ services:
       - "${MANAGER_PORT:-8080}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    depends_on:
-      - mysql
     networks:
       - internal
       - db
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
+
+  web:
+    image: ${WEB_IMAGE:-orchestra-web}:${WEB_IMAGE_TAG:-local}
+    environment:
+      AUTH_SECRET: ${AUTH_SECRET}
+      DATABASE_URL: mysql://${MYSQL_ROOT_USER:-root}:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-llagents_platform}
+      MANAGER_URL: http://manager:8080
+      APP_ROOT_DOMAIN: ${APP_ROOT_DOMAIN:-localhost}
+      REDIS_URL: redis://redis:6379
+    networks:
+      - internal
+      - db
+      - ingress
+    deploy:
+      restart_policy:
+        condition: any
+      labels:
+        - traefik.enable=true
+        - traefik.http.routers.web.rule=Host(`${WEB_DOMAIN:-app.localhost}`)
+        - traefik.http.routers.web.entrypoints=web
+        - traefik.http.services.web.loadbalancer.server.port=3000
+
+  worker:
+    image: ${WEB_IMAGE:-orchestra-web}:${WEB_IMAGE_TAG:-local}
+    command: npm run worker:start
+    environment:
+      DATABASE_URL: mysql://${MYSQL_ROOT_USER:-root}:${MYSQL_ROOT_PASSWORD}@mysql:3306/${MYSQL_DATABASE:-llagents_platform}
+      MANAGER_URL: http://manager:8080
+      REDIS_URL: redis://redis:6379
+      DEPLOY_WORKER_CONCURRENCY: ${DEPLOY_WORKER_CONCURRENCY:-2}
+    networks:
+      - internal
+      - db
+    deploy:
+      restart_policy:
+        condition: any
 
   mysql:
-    image: mysql:8.4
+    image: ${MYSQL_IMAGE:-mysql:8.4}
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE:-llagents_platform}
     volumes:
       - mysql-data:/var/lib/mysql
-    ports:
-      - "${MYSQL_PORT:-3306}:3306"
     networks:
       db:
         aliases:
           - mysql
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
   redis:
-    image: redis:7.4-alpine
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
+    image: ${REDIS_IMAGE:-redis:7.4-alpine}
+    volumes:
+      - redis-data:/data
     networks:
       - internal
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
 volumes:
   mysql-data:
+  redis-data:
 
 networks:
-  internal:
-    name: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
-    external: true
   db:
     name: ${DB_NETWORK_ID:-llagents_local_db}
     external: true
   ingress:
     name: ${INGRESS_NETWORK_ID:-llagents_local_ingress}
+    external: true
+  internal:
+    name: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
     external: true
