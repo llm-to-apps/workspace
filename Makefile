@@ -8,13 +8,12 @@ DOCKER_COMPOSE ?= docker compose
 up: build ensure-networks
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	@set -a; . ./$(ENV_FILE); set +a; \
-	docker stack deploy --resolve-image never -c $(COMPOSE_FILE) "$${STACK_NAME:-$(STACK_NAME)}"
+	docker stack deploy --prune --resolve-image never -c $(COMPOSE_FILE) "$${STACK_NAME:-$(STACK_NAME)}"
 
 build:
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	@set -a; . ./$(ENV_FILE); set +a; \
-	docker build -t "$${MANAGER_IMAGE:-orchestra-manager}:$${MANAGER_IMAGE_TAG:-local}" ./manager; \
-	docker build -t "$${WEB_IMAGE:-orchestra-web}:$${WEB_IMAGE_TAG:-local}" ./web
+	docker build -t "$${MANAGER_IMAGE:-orchestra-manager}:$${MANAGER_IMAGE_TAG:-local}" ./manager
 
 ensure-swarm:
 	@state="$$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || true)"; \
