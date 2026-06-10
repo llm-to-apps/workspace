@@ -41,17 +41,55 @@ services:
       restart_policy:
         condition: any
 
+  forgejo:
+    image: ${FORGEJO_IMAGE:-codeberg.org/forgejo/forgejo:15}
+    entrypoint: ["/usr/local/bin/forgejo-bootstrap.sh"]
+    environment:
+      USER_UID: ${FORGEJO_USER_UID:-1000}
+      USER_GID: ${FORGEJO_USER_GID:-1000}
+      FORGEJO__database__DB_TYPE: postgres
+      FORGEJO__database__HOST: host.docker.internal:5432
+      FORGEJO__database__NAME: ${FORGEJO_POSTGRES_DATABASE:-forgejo}
+      FORGEJO__database__USER: ${FORGEJO_POSTGRES_USER:-forgejo}
+      FORGEJO__database__PASSWD: ${FORGEJO_POSTGRES_PASSWORD:-forgejo}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-http://localhost:13002/}
+      FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-localhost}
+      FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2222}
+      FORGEJO__security__INSTALL_LOCK: "true"
+      FORGEJO__security__SECRET_KEY: ${FORGEJO_SECRET_KEY:-dev-forgejo-secret-key-change-me}
+      FORGEJO__security__INTERNAL_TOKEN: ${FORGEJO_INTERNAL_TOKEN:-dev-forgejo-internal-token-change-me}
+      FORGEJO__service__DISABLE_REGISTRATION: ${FORGEJO_DISABLE_REGISTRATION:-false}
+      FORGEJO_ADMIN_USER: ${FORGEJO_ADMIN_USER:-root}
+      FORGEJO_ADMIN_PASSWORD: ${FORGEJO_ADMIN_PASSWORD:-admin1234}
+      FORGEJO_ADMIN_EMAIL: ${FORGEJO_ADMIN_EMAIL:-root@example.local}
+    ports:
+      - "${FORGEJO_HTTP_PORT:-13002}:3000"
+      - "${FORGEJO_SSH_PORT:-2222}:22"
+    volumes:
+      - forgejo-data:/data
+      - ./docker/forgejo/bootstrap.sh:/usr/local/bin/forgejo-bootstrap.sh:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    deploy:
+      restart_policy:
+        condition: any
+
   postgres:
     image: ${POSTGRES_IMAGE:-postgres:17-alpine}
     environment:
       POSTGRES_DB: ${POSTGRES_DATABASE:-llagents_platform}
       POSTGRES_USER: ${POSTGRES_USER:-llagents}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      FORGEJO_POSTGRES_DATABASE: ${FORGEJO_POSTGRES_DATABASE:-forgejo}
+      FORGEJO_POSTGRES_USER: ${FORGEJO_POSTGRES_USER:-forgejo}
+      FORGEJO_POSTGRES_PASSWORD: ${FORGEJO_POSTGRES_PASSWORD:-forgejo}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init-forgejo-db.sh:/docker-entrypoint-initdb.d/20-forgejo-db.sh:ro
     networks:
+      default:
       db:
         aliases:
           - postgres
@@ -88,6 +126,7 @@ services:
         condition: any
 
 volumes:
+  forgejo-data:
   postgres-data:
   mysql-data:
   redis-data:
