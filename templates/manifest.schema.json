@@ -19,6 +19,9 @@
     "env"
   ],
   "properties": {
+    "$schema": {
+      "type": "string"
+    },
     "schemaVersion": {
       "type": "integer",
       "const": 1

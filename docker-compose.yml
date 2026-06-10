@@ -8,13 +8,13 @@ services:
       - --providers.swarm=true
       - --providers.swarm.endpoint=unix:///var/run/docker.sock
       - --providers.swarm.exposedbydefault=false
-      - --providers.swarm.network=${INGRESS_NETWORK_ID:-llagents_local_ingress}
+      - --providers.swarm.network=orchestra_local_ingress
     ports:
       - "80:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      - ingress
+      - local_ingress
     deploy:
       restart_policy:
         condition: any
@@ -28,15 +28,15 @@ services:
       MYSQL_ROOT_USER: ${MYSQL_ROOT_USER:-root}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-llagents/user-instance:latest}
-      DB_NETWORK_ID: ${DB_NETWORK_ID:-llagents_local_db}
-      INGRESS_NETWORK_ID: ${INGRESS_NETWORK_ID:-llagents_local_ingress}
+      DB_NETWORK_ID: orchestra_local_db
+      INGRESS_NETWORK_ID: orchestra_local_ingress
     ports:
       - "${MANAGER_PORT:-8080}:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - internal
-      - db
+      - local_internal
+      - local_db
     deploy:
       restart_policy:
         condition: any
@@ -48,7 +48,7 @@ services:
       USER_UID: ${FORGEJO_USER_UID:-1000}
       USER_GID: ${FORGEJO_USER_GID:-1000}
       FORGEJO__database__DB_TYPE: postgres
-      FORGEJO__database__HOST: host.docker.internal:5432
+      FORGEJO__database__HOST: postgres:5432
       FORGEJO__database__NAME: ${FORGEJO_POSTGRES_DATABASE:-forgejo}
       FORGEJO__database__USER: ${FORGEJO_POSTGRES_USER:-forgejo}
       FORGEJO__database__PASSWD: ${FORGEJO_POSTGRES_PASSWORD:-forgejo}
@@ -68,8 +68,10 @@ services:
     volumes:
       - forgejo-data:/data
       - ./docker/forgejo/bootstrap.sh:/usr/local/bin/forgejo-bootstrap.sh:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      local_db:
+        aliases:
+          - forgejo
     deploy:
       restart_policy:
         condition: any
@@ -89,8 +91,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/init-forgejo-db.sh:/docker-entrypoint-initdb.d/20-forgejo-db.sh:ro
     networks:
-      default:
-      db:
+      local_db:
         aliases:
           - postgres
     deploy:
@@ -106,7 +107,7 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      db:
+      local_db:
         aliases:
           - mysql
     deploy:
@@ -120,7 +121,7 @@ services:
     volumes:
       - redis-data:/data
     networks:
-      - internal
+      - local_internal
     deploy:
       restart_policy:
         condition: any
@@ -132,12 +133,9 @@ volumes:
   redis-data:
 
 networks:
-  db:
-    name: ${DB_NETWORK_ID:-llagents_local_db}
-    external: true
-  ingress:
-    name: ${INGRESS_NETWORK_ID:-llagents_local_ingress}
-    external: true
-  internal:
-    name: ${INTERNAL_NETWORK_ID:-llagents_local_internal}
-    external: true
+  local_db:
+    attachable: true
+  local_ingress:
+    attachable: true
+  local_internal:
+    attachable: true
