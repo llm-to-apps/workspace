@@ -31,7 +31,7 @@ services:
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
       MYSQL_ROOT_USER: ${MYSQL_ROOT_USER:-root}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-os7/user-instance:latest}
+      USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-ghcr.io/llm-to-apps/user-instance:latest}
       STACK_NAME: ${STACK_NAME:-os7}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
