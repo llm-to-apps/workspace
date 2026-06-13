@@ -8,35 +8,38 @@ services:
       - --providers.swarm=true
       - --providers.swarm.endpoint=unix:///var/run/docker.sock
       - --providers.swarm.exposedbydefault=false
-      - --providers.swarm.network=orchestra_local_ingress
+      - --providers.swarm.network=${STACK_NAME:-os7}_ingress
+      - --providers.file.filename=/etc/traefik/dynamic/local-web.yml
+      - --providers.file.watch=true
     ports:
       - "80:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./docker/traefik/local-web.yml:/etc/traefik/dynamic/local-web.yml:ro
     networks:
-      - local_ingress
+      - ingress
     deploy:
       restart_policy:
         condition: any
 
   manager:
-    image: ${MANAGER_IMAGE:-orchestra-manager}:${MANAGER_IMAGE_TAG:-local}
+    image: ${MANAGER_IMAGE:-os7-manager}:${MANAGER_IMAGE_TAG:-local}
     environment:
-      PORT: "8080"
-      ROOT_DOMAIN: ${ROOT_DOMAIN:-localhost}
+      PORT: "80"
       MYSQL_HOST: ${MYSQL_HOST:-mysql}
       MYSQL_ROOT_USER: ${MYSQL_ROOT_USER:-root}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-llagents/user-instance:latest}
-      DB_NETWORK_ID: orchestra_local_db
-      INGRESS_NETWORK_ID: orchestra_local_ingress
-    ports:
-      - "${MANAGER_PORT:-8080}:8080"
+      USER_INSTANCE_IMAGE: ${USER_INSTANCE_IMAGE:-os7/user-instance:latest}
+      STACK_NAME: ${STACK_NAME:-os7}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - local_internal
-      - local_db
+      - internal
+      - db
+    ports:
+      - "${MANAGER_PORT:-8080}:80"
     deploy:
       restart_policy:
         condition: any
@@ -52,24 +55,27 @@ services:
       FORGEJO__database__NAME: ${FORGEJO_POSTGRES_DATABASE:-forgejo}
       FORGEJO__database__USER: ${FORGEJO_POSTGRES_USER:-forgejo}
       FORGEJO__database__PASSWD: ${FORGEJO_POSTGRES_PASSWORD:-forgejo}
-      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-http://localhost:13002/}
+      FORGEJO__server__ROOT_URL: ${FORGEJO_ROOT_URL:-http://localhost:8081/}
+      FORGEJO__server__HTTP_PORT: "80"
       FORGEJO__server__SSH_DOMAIN: ${FORGEJO_SSH_DOMAIN:-localhost}
       FORGEJO__server__SSH_PORT: ${FORGEJO_SSH_PORT:-2222}
       FORGEJO__security__INSTALL_LOCK: "true"
       FORGEJO__security__SECRET_KEY: ${FORGEJO_SECRET_KEY:-dev-forgejo-secret-key-change-me}
       FORGEJO__security__INTERNAL_TOKEN: ${FORGEJO_INTERNAL_TOKEN:-dev-forgejo-internal-token-change-me}
-      FORGEJO__service__DISABLE_REGISTRATION: ${FORGEJO_DISABLE_REGISTRATION:-false}
+      FORGEJO__service__DISABLE_REGISTRATION: ${FORGEJO_DISABLE_REGISTRATION:-true}
       FORGEJO_ADMIN_USER: ${FORGEJO_ADMIN_USER:-root}
       FORGEJO_ADMIN_PASSWORD: ${FORGEJO_ADMIN_PASSWORD:-admin1234}
       FORGEJO_ADMIN_EMAIL: ${FORGEJO_ADMIN_EMAIL:-root@example.local}
     ports:
-      - "${FORGEJO_HTTP_PORT:-13002}:3000"
-      - "${FORGEJO_SSH_PORT:-2222}:22"
+      - "${FORGEJO_HTTP_PORT:-8081}:80"
+      - "${FORGEJO_SSH_PORT:-8085}:22"
+    cap_add:
+      - NET_BIND_SERVICE
     volumes:
       - forgejo-data:/data
       - ./docker/forgejo/bootstrap.sh:/usr/local/bin/forgejo-bootstrap.sh:ro
     networks:
-      local_db:
+      db:
         aliases:
           - forgejo
     deploy:
@@ -79,19 +85,19 @@ services:
   postgres:
     image: ${POSTGRES_IMAGE:-postgres:17-alpine}
     environment:
-      POSTGRES_DB: ${POSTGRES_DATABASE:-llagents_platform}
-      POSTGRES_USER: ${POSTGRES_USER:-llagents}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-os7_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-os7}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       FORGEJO_POSTGRES_DATABASE: ${FORGEJO_POSTGRES_DATABASE:-forgejo}
       FORGEJO_POSTGRES_USER: ${FORGEJO_POSTGRES_USER:-forgejo}
       FORGEJO_POSTGRES_PASSWORD: ${FORGEJO_POSTGRES_PASSWORD:-forgejo}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-8082}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./docker/postgres/init-forgejo-db.sh:/docker-entrypoint-initdb.d/20-forgejo-db.sh:ro
     networks:
-      local_db:
+      db:
         aliases:
           - postgres
     deploy:
@@ -102,12 +108,10 @@ services:
     image: ${MYSQL_IMAGE:-mysql:8.4}
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    ports:
-      - "${MYSQL_PORT:-3306}:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      local_db:
+      db:
         aliases:
           - mysql
     deploy:
@@ -117,11 +121,11 @@ services:
   redis:
     image: ${REDIS_IMAGE:-redis:7.4-alpine}
     ports:
-      - "${REDIS_PORT:-6379}:6379"
+      - "${REDIS_PORT:-8084}:6379"
     volumes:
       - redis-data:/data
     networks:
-      - local_internal
+      - internal
     deploy:
       restart_policy:
         condition: any
@@ -133,9 +137,9 @@ volumes:
   redis-data:
 
 networks:
-  local_db:
+  db:
     attachable: true
-  local_ingress:
+  ingress:
     attachable: true
-  local_internal:
+  internal:
     attachable: true

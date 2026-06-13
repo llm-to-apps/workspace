@@ -1,8 +1,8 @@
-# LLAgents Platform Spec
+# OS7 Platform Spec
 
 ## Goal
 
-LLAgents is a platform where a user can deploy an application template into their own isolated live instance, open it at a subdomain like `xyz.llmagents.com`, and then edit the application's source code in real time through an LLM chat.
+OS7 is a platform where a user can deploy an application template into their own isolated live instance, open it at a subdomain like `xyz.os7.dev`, and then edit the application's source code in real time through an LLM chat.
 
 The core idea:
 
@@ -39,7 +39,7 @@ Each user application is isolated. The platform itself is not modified by user p
 13. Reverse proxy maps a subdomain to the running app:
 
 ```text
-xyz.llmagents.com -> project-123 service -> app port
+xyz.os7.dev -> project-123 service -> app port
 ```
 
 14. User opens the app.
@@ -53,7 +53,7 @@ xyz.llmagents.com -> project-123 service -> app port
 ## Main Architecture
 
 ```text
-LLAgents Platform
+OS7 Platform
   - auth
   - billing
   - templates catalog
@@ -69,7 +69,7 @@ Docker Swarm Cluster
   - manager nodes
   - worker nodes
   - Traefik reverse proxy
-  - llagents-manager service
+  - os7-manager service
   - user app services
 
 User App Service
@@ -88,7 +88,7 @@ Use Docker Swarm as the runtime scheduler.
 The platform deploys a privileged internal service:
 
 ```text
-llagents-manager
+os7-manager
 ```
 
 This service runs on a Swarm manager node and has access to Docker Engine API through:
@@ -110,7 +110,7 @@ Each project is usually one Swarm service with one replica:
 ```text
 service: project-123
 replicas: 1
-image: llmagents/user-instance:latest
+image: os7/user-instance:latest
 ```
 
 For live editing, keep `replicas = 1`, because the workspace is mutable and the agent edits local source files.
@@ -124,7 +124,7 @@ published app: immutable image, replicas = N
 
 ## Platform Manager Service
 
-The `llagents-manager` service is the control plane inside the Swarm cluster.
+The `os7-manager` service is the control plane inside the Swarm cluster.
 
 Responsibilities:
 
@@ -144,12 +144,12 @@ Example Swarm placement:
 
 ```yaml
 services:
-  llagents-manager:
-    image: llagents/manager:latest
+  os7-manager:
+    image: os7/manager:latest
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      ROOT_DOMAIN: llmagents.com
+      PLATFORM_DOMAIN: os7.dev
       MYSQL_ADMIN_URL: mysql://...
       GIT_PROVIDER_TOKEN: ...
     networks:
@@ -164,7 +164,7 @@ services:
 Security note:
 
 ```text
-llagents-manager + /var/run/docker.sock = root-level control over the cluster
+os7-manager + /var/run/docker.sock = root-level control over the cluster
 ```
 
 Therefore:
@@ -184,7 +184,7 @@ Example service inputs:
 PROJECT_ID=project-123
 REPO_URL=git@github.com:org/project-123.git
 DATABASE_URL=mysql://project_123_user:password@mysql-host:3306/project_123
-APP_DOMAIN=xyz.llmagents.com
+APP_DOMAIN=xyz.os7.dev
 APP_PORT=3001
 AGENT_PORT=7001
 START_COMMAND=npm run dev
@@ -195,7 +195,7 @@ SEED_COMMAND=npm run db:seed
 The container image should be generic:
 
 ```text
-llagents/user-instance:latest
+os7/user-instance:latest
 ```
 
 It should not contain a specific user's source code. Source code is cloned during bootstrap.
@@ -278,7 +278,7 @@ For each user service, manager sets labels like:
 
 ```text
 traefik.enable=true
-traefik.http.routers.project-123.rule=Host(`xyz.llmagents.com`)
+traefik.http.routers.project-123.rule=Host(`xyz.os7.dev`)
 traefik.http.routers.project-123.entrypoints=websecure
 traefik.http.routers.project-123.tls.certresolver=letsencrypt
 traefik.http.services.project-123.loadbalancer.server.port=3001
@@ -288,7 +288,7 @@ The agent tool server should not be publicly exposed. It should be reachable onl
 
 ```text
 public:
-  xyz.llmagents.com -> app port
+  xyz.os7.dev -> app port
 
 internal:
   orchestrator/manager -> agent tool server port
@@ -526,7 +526,7 @@ Flow:
 The user sees changes on:
 
 ```text
-https://xyz.llmagents.com
+https://xyz.os7.dev
 ```
 
 ## RAG and Context
@@ -690,7 +690,7 @@ Example template metadata:
 {
   "id": "money",
   "name": "Personal Finance",
-  "repo": "git@github.com:llagents/template-money.git",
+  "repo": "git@github.com:os7/template-money.git",
   "defaultBranch": "main",
   "runtime": "node",
   "appPort": 3001,
@@ -737,7 +737,7 @@ Returned response:
 ```json
 {
   "projectId": "project-123",
-  "url": "https://xyz.llmagents.com",
+  "url": "https://xyz.os7.dev",
   "status": "deploying"
 }
 ```
@@ -755,7 +755,7 @@ await docker.createService({
   Name: `project-${projectId}`,
   TaskTemplate: {
     ContainerSpec: {
-      Image: 'llagents/user-instance:latest',
+      Image: 'os7/user-instance:latest',
       Env: [
         `PROJECT_ID=${projectId}`,
         `REPO_URL=${repoUrl}`,
@@ -851,13 +851,13 @@ Possible infrastructure alternatives:
 - Coolify: self-hosted PaaS with Git deploy/env/domains.
 - Dokku: simpler Heroku-like deployment.
 
-Recommended path for LLAgents:
+Recommended path for OS7:
 
 ```text
 MVP:
   Docker Swarm
   Traefik
-  custom llagents-manager
+  custom os7-manager
   custom user-instance image
   custom agent tool server
   MySQL
@@ -886,7 +886,7 @@ Later:
 
 - Initialize Docker Swarm.
 - Deploy Traefik as Swarm service.
-- Deploy `llagents-manager` as Swarm service.
+- Deploy `os7-manager` as Swarm service.
 - Create user apps as Swarm services.
 - Add service health monitoring.
 - Add restart/recreate lifecycle.
@@ -918,4 +918,3 @@ Later:
 - Abuse controls.
 - Backups.
 - Project export.
-

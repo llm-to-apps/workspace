@@ -1,0 +1,24 @@
+<svg width="760" height="260" viewBox="0 0 760 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OS7 red wordmark</title>
+  <desc>OS wordmark with an angular red 7 symbol.</desc>
+  <defs>
+    <linearGradient id="red" x1="420" y1="44" x2="610" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF1748"/>
+      <stop offset="1" stop-color="#F0063A"/>
+    </linearGradient>
+  </defs>
+
+  <text
+    x="36"
+    y="179"
+    fill="#0F172A"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="156"
+    font-weight="800"
+    letter-spacing="-4">OS</text>
+
+  <g transform="translate(390 -15) scale(0.55)" fill="url(#red)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M185 86H369L321 176L253 426L203 333L252 176H138L185 86ZM203 116H321L304 146H187L203 116ZM291 176H319L238 340L222 313L291 176Z"/>
+    <path d="M386 118L402 149L303 355L287 322L386 118Z"/>
+  </g>
+</svg>

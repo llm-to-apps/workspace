@@ -1,18 +1,18 @@
 [submodule "manager"]
 	path = manager
-	url = git@github.com:llm-to-apps/manager.git
+	url = git@github.com:os7/manager.git
 [submodule "deploy"]
 	path = deploy
-	url = git@github.com:llm-to-apps/deploy.git
+	url = git@github.com:os7/deploy.git
 [submodule "web"]
 	path = web
-	url = git@github.com:llm-to-apps/web.git
+	url = git@github.com:os7/web.git
 [submodule "templates/money"]
 	path = templates/money
-	url = git@github.com:llm-to-apps/money-template.git
+	url = git@github.com:os7/money-template.git
 [submodule "agent-tools"]
 	path = agent-tools
-	url = git@github.com:llm-to-apps/agent-tools.git
+	url = git@github.com:os7/agent-tools.git
 [submodule "agent"]
 	path = agent
-	url = git@github.com:llm-to-apps/agent.git
+	url = git@github.com:os7/agent.git

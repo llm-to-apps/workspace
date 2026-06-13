@@ -1,0 +1,15 @@
+<svg width="490" height="552" viewBox="0 0 490 552" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OS7 red mark</title>
+  <desc>Angular red 7 symbol for OS7.</desc>
+  <defs>
+    <linearGradient id="red" x1="138" y1="86" x2="402" y2="426" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FF1748"/>
+      <stop offset="1" stop-color="#F5083E"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="url(#red)">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M185 86H369L321 176L253 426L203 333L252 176H138L185 86ZM203 116H321L304 146H187L203 116ZM291 176H319L238 340L222 313L291 176Z"/>
+    <path d="M386 118L402 149L303 355L287 322L386 118Z"/>
+  </g>
+</svg>

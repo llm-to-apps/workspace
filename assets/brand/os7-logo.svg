@@ -1,0 +1,21 @@
+<svg width="640" height="210" viewBox="0 -30 640 210" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OS7 logo</title>
+  <desc>Primary vector wordmark for OS7.</desc>
+  <defs>
+    <linearGradient id="signal" x1="430" y1="28" x2="560" y2="140" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#22C55E"/>
+      <stop offset="0.5" stop-color="#06B6D4"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+
+  <g aria-label="OS7">
+    <circle cx="82" cy="80" r="51" stroke="#0F172A" stroke-width="24"/>
+    <path d="M175 114C197 132 253 137 274 110C296 82 277 59 236 57C195 55 176 36 193 14C212 -14 264 -12 288 8" stroke="#0F172A" stroke-width="24" stroke-linecap="round"/>
+    <path d="M342 31H475L389 132" stroke="url(#signal)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M94 125C174 80 267 65 462 76" stroke="url(#signal)" stroke-width="12" stroke-linecap="round"/>
+    <circle cx="462" cy="76" r="10" fill="#22C55E"/>
+  </g>
+
+  <text x="2" y="166" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="600">your own software, built by AI</text>
+</svg>

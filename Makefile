@@ -1,6 +1,6 @@
 ENV_FILE ?= .env
 COMPOSE_FILE ?= docker-compose.yml
-STACK_NAME ?= orchestra
+STACK_NAME ?= os7
 DOCKER_COMPOSE ?= docker compose
 
 .PHONY: up down build logs ps config ensure-swarm
@@ -9,6 +9,7 @@ up: build ensure-swarm
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	@set -a; . ./$(ENV_FILE); set +a; \
 	stack_name="$${STACK_NAME:-$(STACK_NAME)}"; \
+	export STACK_NAME="$$stack_name"; \
 	docker stack deploy --prune --resolve-image never -c $(COMPOSE_FILE) "$$stack_name"; \
 	docker service inspect "$${stack_name}_manager" >/dev/null 2>&1 && \
 		docker service update --force "$${stack_name}_manager" >/dev/null
@@ -16,7 +17,7 @@ up: build ensure-swarm
 build:
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	@set -a; . ./$(ENV_FILE); set +a; \
-	docker build -t "$${MANAGER_IMAGE:-orchestra-manager}:$${MANAGER_IMAGE_TAG:-local}" ./manager
+	docker build -t "$${MANAGER_IMAGE:-os7-manager}:$${MANAGER_IMAGE_TAG:-local}" ./manager
 
 ensure-swarm:
 	@state="$$(docker info --format '{{.Swarm.LocalNodeState}}' 2>/dev/null || true)"; \

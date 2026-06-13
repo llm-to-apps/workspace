@@ -1,0 +1,20 @@
+<svg width="900" height="360" viewBox="0 0 900 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>OS7 exact reference lockup</title>
+  <desc>OS wordmark with the exact provided red 7 reference image.</desc>
+  <rect width="900" height="360" fill="white"/>
+  <text
+    x="60"
+    y="238"
+    fill="#0F172A"
+    font-family="Inter, Arial, Helvetica, sans-serif"
+    font-size="180"
+    font-weight="800"
+    letter-spacing="-6">OS</text>
+  <image
+    href="reference/os7-reference.png"
+    x="392"
+    y="28"
+    width="300"
+    height="318"
+    preserveAspectRatio="xMidYMid meet"/>
+</svg>

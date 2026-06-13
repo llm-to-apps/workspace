@@ -1,0 +1,13 @@
+http:
+  routers:
+    web-local:
+      rule: Host(`os7.localhost`) || Host(`os7_traefik`)
+      entryPoints:
+        - web
+      service: web-local
+
+  services:
+    web-local:
+      loadBalancer:
+        servers:
+          - url: http://host.docker.internal:3000
