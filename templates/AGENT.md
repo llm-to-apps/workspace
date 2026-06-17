@@ -2,6 +2,33 @@
 
 These rules apply to all OS7 app templates.
 
+## Project Agent Guidance
+
+Each app template should include a concise project `AGENT.md` for agents working
+inside deployed/generated app projects. That file should optimize for small,
+targeted user requests such as changing copy, adding a field, adjusting a color,
+or wiring a simple CRUD behavior.
+
+Project `AGENT.md` files should explicitly tell agents to:
+
+- prefer the smallest safe change that satisfies the user request
+- inspect only the files directly related to the requested UI, route, schema,
+  API, MCP tool, or component before broadening the search
+- avoid mapping the whole codebase for routine changes
+- preserve the app's existing architecture, naming, styling, and patterns
+- avoid unrelated refactors and generated-file churn
+- run the narrowest relevant verification before reporting completion
+
+Project `AGENT.md` files should also include a `Common Places` section with
+template-specific paths for the ORM schema, route handlers, feature modules,
+shared API/result helpers, server infrastructure, UI entry points, MCP tools,
+tests, and styling/theme files. Keep this section concrete enough that an agent
+can jump to likely files without scanning the full repository.
+
+Agents should slow down and broaden exploration only for auth, billing,
+permissions, deployment, background jobs, shared framework code, destructive
+migrations, or failures that reveal wider coupling.
+
 ## Next.js App Architecture
 
 All new OS7 Next.js app templates should use the App Router only. Do not add a
@@ -48,6 +75,21 @@ Use path aliases instead of long relative imports:
 API routes should use a shared result/error contract. Do not hand-roll a new
 error envelope in each route; use the app's standard `AppResult` / `AppError`
 helpers and HTTP mapping.
+
+Public JSON API routes should use one response envelope:
+
+- success: `{ ok: true, data: T }`
+- error: `{ ok: false, error: { code, message, details? } }`
+
+Keep the shared `ApiResponse<T>` and `ApiError` types in a framework-neutral
+shared module such as `src/shared/result.ts`. API route handlers should return
+success through a shared helper such as `jsonOk(data)` and errors through a
+shared helper such as `jsonError(error)` / `jsonErrorFromUnknown(error)`. Do not
+mix raw success DTOs with enveloped errors on public JSON APIs.
+
+Document intentional exceptions. OAuth/login/logout redirects, SSE streams,
+webhooks that must match a provider contract, and MCP JSON-RPC routes do not
+need to use `ApiResponse<T>`, but their alternate contract must stay explicit.
 
 Server-only modules that touch secrets, cookies, Prisma, auth, env, events, or
 business data must import `server-only` at the top of the file.
