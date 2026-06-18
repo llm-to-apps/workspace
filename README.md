@@ -167,6 +167,32 @@ The current repository already follows this direction:
 - `templates` contains starter applications.
 - `deploy` and `docker` contain infrastructure pieces.
 
+## Local Development Setup
+
+For a new developer:
+
+```bash
+cp .env.example .env
+cp web/.env.example web/.env
+make up
+cd web
+npm install
+npm run db:bootstrap
+npm run dev
+```
+
+`make up` builds the local manager image, starts the local Swarm stack, and runs
+`scripts/bootstrap-local-storage.sh`. The bootstrap asks manager to create the
+shared `os7-local-web` SeaweedFS bucket and writes scoped web credentials into
+`web/.env`. SeaweedFS admin credentials stay in the local infrastructure stack
+and are only passed to manager.
+
+If storage credentials need to be recreated:
+
+```bash
+make bootstrap-storage
+```
+
 ## Core Capabilities
 
 ### Install Apps From Templates
@@ -250,4 +276,3 @@ Control them through AI.
 Connect them through agents.
 Evolve them through conversation.
 ```
-

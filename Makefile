@@ -3,7 +3,7 @@ COMPOSE_FILE ?= docker-compose.yml
 STACK_NAME ?= os7
 DOCKER_COMPOSE ?= docker compose
 
-.PHONY: up down build logs ps config ensure-swarm
+.PHONY: up down build logs ps config bootstrap-storage ensure-swarm
 
 up: build ensure-swarm
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
@@ -13,6 +13,7 @@ up: build ensure-swarm
 	docker stack deploy --prune --resolve-image never -c $(COMPOSE_FILE) "$$stack_name"; \
 	docker service inspect "$${stack_name}_manager" >/dev/null 2>&1 && \
 		docker service update --force "$${stack_name}_manager" >/dev/null
+	./scripts/bootstrap-local-storage.sh
 
 build:
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
@@ -40,3 +41,6 @@ ps:
 config:
 	@if [ ! -f "$(ENV_FILE)" ]; then cp .env.example "$(ENV_FILE)"; fi
 	$(DOCKER_COMPOSE) --env-file $(ENV_FILE) -f $(COMPOSE_FILE) config
+
+bootstrap-storage:
+	./scripts/bootstrap-local-storage.sh
