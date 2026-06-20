@@ -10,6 +10,9 @@
 [submodule "templates/money"]
 	path = templates/money
 	url = git@github.com:llm-to-apps/money-template.git
+[submodule "templates/gpt-card-template"]
+	path = templates/gpt-card-template
+	url = git@github.com:llm-to-apps/gpt-card-template.git
 [submodule "agent-tools"]
 	path = agent-tools
 	url = git@github.com:llm-to-apps/agent-tools.git
